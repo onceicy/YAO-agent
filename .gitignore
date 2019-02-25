@@ -1,3 +1,17 @@
+# Custom
+
+status.xml
+
+
+
+# IDEA
+
+*.iml
+.idea/
+
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
