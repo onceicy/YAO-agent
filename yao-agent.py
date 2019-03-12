@@ -6,7 +6,6 @@ from xml.dom.minidom import parse
 import xml.dom.minidom
 from kafka import KafkaProducer
 
-
 ClientID = os.getenv('ClientID', 1)
 KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 
@@ -18,7 +17,7 @@ def main():
 			status, msg_gpu = execute(['nvidia-smi', '-q', '-x', '-f', 'status.xml'])
 			if not status:
 				print("execute failed, ", msg_gpu)
-				continue
+			continue
 			report_msg()
 			time.sleep(interval)
 		except Exception as e:
@@ -55,6 +54,16 @@ def report_msg():
 			'temperature_gpu': gpu.getElementsByTagName('temperature')[0].getElementsByTagName('gpu_temp')[0].childNodes[0].data,
 			'power_draw': gpu.getElementsByTagName('power_readings')[0].getElementsByTagName('power_draw')[0].childNodes[0].data
 		}
+
+		stat['fan_speed'] = int(float(stat['fan_speed'].split(' ')[0]))
+		stat['memory_total'] = int(float(stat['memory_total'].split(' ')[0]))
+		stat['memory_free'] = int(float(stat['memory_free'].split(' ')[0]))
+		stat['memory_used'] = int(float(stat['memory_used'].split(' ')[0]))
+		stat['utilization_gpu'] = int(float(stat['utilization_gpu'].split(' ')[0]))
+		stat['utilization_mem'] = int(float(stat['utilization_mem'].split(' ')[0]))
+		stat['temperature_gpu'] = int(float(stat['temperature_gpu'].split(' ')[0]))
+		stat['power_draw'] = int(float(stat['power_draw'].split(' ')[0]))
+
 		stats.append(stat)
 
 	post_fields = {'id': ClientID, 'status': stats}

@@ -4,11 +4,14 @@ status.xml
 
 
 
-# IDEA
-
+# IDEA IntelliJ
 *.iml
 .idea/
 
+
+# Tmp files
+*.swp
+*~
 
 
 
