@@ -48,8 +48,8 @@ class MyHandler(BaseHTTPRequestHandler):
 					'image': container.attrs['Config']['Image'],
 					'image_digest': container.attrs['Image'],
 					'command': container.attrs['Config']['Cmd'],
-					'createdAt': container.attrs['Created'],
-					'finishedAt': container.attrs['State']['FinishedAt'],
+					'created_at': container.attrs['Created'],
+					'finished_at': container.attrs['State']['FinishedAt'],
 					'status': container.status
 				}
 				if status['command'] is not None:
