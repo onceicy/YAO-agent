@@ -17,7 +17,6 @@ def main():
 			status, msg_gpu = execute(['nvidia-smi', '-q', '-x', '-f', 'status.xml'])
 			if not status:
 				print("execute failed, ", msg_gpu)
-			continue
 			report_msg()
 			time.sleep(interval)
 		except Exception as e:
@@ -44,7 +43,6 @@ def report_msg():
 		stat = {
 			'uuid': gpu.getElementsByTagName('uuid')[0].childNodes[0].data,
 			'product_name': gpu.getElementsByTagName('product_name')[0].childNodes[0].data,
-			'fan_speed': gpu.getElementsByTagName('fan_speed')[0].childNodes[0].data,
 			'performance_state': gpu.getElementsByTagName('performance_state')[0].childNodes[0].data,
 			'memory_total': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('total')[0].childNodes[0].data,
 			'memory_free': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('free')[0].childNodes[0].data,
@@ -55,7 +53,6 @@ def report_msg():
 			'power_draw': gpu.getElementsByTagName('power_readings')[0].getElementsByTagName('power_draw')[0].childNodes[0].data
 		}
 
-		stat['fan_speed'] = int(float(stat['fan_speed'].split(' ')[0]))
 		stat['memory_total'] = int(float(stat['memory_total'].split(' ')[0]))
 		stat['memory_free'] = int(float(stat['memory_free'].split(' ')[0]))
 		stat['memory_used'] = int(float(stat['memory_used'].split(' ')[0]))
