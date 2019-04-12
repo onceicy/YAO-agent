@@ -75,14 +75,18 @@ class MyHandler(BaseHTTPRequestHandler):
 					'CONTENT_TYPE': self.headers['Content-Type'],
 				})
 			docker_image = form["image"].value
+			docker_name = form["name"].value
 			docker_cmd = form["cmd"].value
+			docker_workspace = form["workspace"].value
+			docker_gpus = form["gpus"].value
 
 			try:
 				client = docker.from_env()
 				container = client.containers.run(
 					image=docker_image,
+					hostname=docker_name,
 					command=docker_cmd,
-					environment={"key": "value"},
+					environment={"repo": docker_workspace, "NVIDIA_VISIBLE_DEVICES": docker_gpus},
 					runtime="nvidia",
 					detach=True
 				)

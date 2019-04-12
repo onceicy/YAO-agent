@@ -1,9 +1,6 @@
-FROM nvidia/cuda:9.0-base
+FROM quickdeploy/yao-python3
 
 MAINTAINER Newnius <newnius.cn@gmail.com>
-
-RUN apt update && \
-	apt install -y python3 python3-pip
 
 RUN pip3 install docker kafka
 
