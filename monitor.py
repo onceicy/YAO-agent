@@ -7,6 +7,7 @@ import xml.dom.minidom
 from kafka import KafkaProducer
 
 ClientID = os.getenv('ClientID', 1)
+ClientHost = os.getenv('ClientHost', "localhost")
 KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 
 
@@ -44,13 +45,20 @@ def report_msg():
 			'uuid': gpu.getElementsByTagName('uuid')[0].childNodes[0].data,
 			'product_name': gpu.getElementsByTagName('product_name')[0].childNodes[0].data,
 			'performance_state': gpu.getElementsByTagName('performance_state')[0].childNodes[0].data,
-			'memory_total': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('total')[0].childNodes[0].data,
-			'memory_free': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('free')[0].childNodes[0].data,
-			'memory_used': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('used')[0].childNodes[0].data,
-			'utilization_gpu': gpu.getElementsByTagName('utilization')[0].getElementsByTagName('gpu_util')[0].childNodes[0].data,
-			'utilization_mem': gpu.getElementsByTagName('utilization')[0].getElementsByTagName('memory_util')[0].childNodes[0].data,
-			'temperature_gpu': gpu.getElementsByTagName('temperature')[0].getElementsByTagName('gpu_temp')[0].childNodes[0].data,
-			'power_draw': gpu.getElementsByTagName('power_readings')[0].getElementsByTagName('power_draw')[0].childNodes[0].data
+			'memory_total': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('total')[0].childNodes[
+				0].data,
+			'memory_free': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('free')[0].childNodes[
+				0].data,
+			'memory_used': gpu.getElementsByTagName('fb_memory_usage')[0].getElementsByTagName('used')[0].childNodes[
+				0].data,
+			'utilization_gpu':
+				gpu.getElementsByTagName('utilization')[0].getElementsByTagName('gpu_util')[0].childNodes[0].data,
+			'utilization_mem':
+				gpu.getElementsByTagName('utilization')[0].getElementsByTagName('memory_util')[0].childNodes[0].data,
+			'temperature_gpu':
+				gpu.getElementsByTagName('temperature')[0].getElementsByTagName('gpu_temp')[0].childNodes[0].data,
+			'power_draw':
+				gpu.getElementsByTagName('power_readings')[0].getElementsByTagName('power_draw')[0].childNodes[0].data
 		}
 
 		stat['memory_total'] = int(float(stat['memory_total'].split(' ')[0]))
@@ -63,7 +71,7 @@ def report_msg():
 
 		stats.append(stat)
 
-	post_fields = {'id': ClientID, 'status': stats}
+	post_fields = {'id': ClientID, 'host': ClientHost, 'status': stats}
 	data = json.dumps(post_fields)
 
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)

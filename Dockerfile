@@ -6,8 +6,8 @@ RUN pip3 install docker kafka
 
 ADD bootstrap.sh /etc/bootstrap.sh
 
-ADD yao-agent.py /root/yao-agent.py
-ADD server.py /root/server.py
+ADD monitor.py /root/monitor.py
+ADD executor.py /root/executor.py
 
 WORKDIR /root
 
