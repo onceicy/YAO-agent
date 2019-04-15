@@ -4,6 +4,6 @@
 
 python3 /root/monitor.py &
 
-python3 /root/server.py &
+python3 /root/executor.py &
 
 sleep infinity
