@@ -36,7 +36,7 @@ def get_status(id):
 	container = client.containers.list(all=True, filters={'id': id})
 	status = {}
 	if len(container) > 0:
-		container= container[0]
+		container = container[0]
 		status['id'] = container.short_id
 		status['image'] = container.attrs['Config']['Image']
 		status['image_digest'] = container.attrs['Image']
@@ -47,6 +47,7 @@ def get_status(id):
 		if status['command'] is not None:
 			status['command'] = ' '.join(container.attrs['Config']['Cmd'])
 	print(status)
+	print(container.attrs)
 
 
 get_status('')

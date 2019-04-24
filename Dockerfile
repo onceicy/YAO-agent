@@ -2,7 +2,7 @@ FROM quickdeploy/yao-python3
 
 MAINTAINER Newnius <newnius.cn@gmail.com>
 
-RUN pip3 install docker kafka
+RUN pip3 install docker kafka psutil
 
 ADD bootstrap.sh /etc/bootstrap.sh
 

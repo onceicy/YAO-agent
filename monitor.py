@@ -5,6 +5,9 @@ import json
 from xml.dom.minidom import parse
 import xml.dom.minidom
 from kafka import KafkaProducer
+import multiprocessing
+import psutil
+import math
 
 ClientID = os.getenv('ClientID', 1)
 ClientHost = os.getenv('ClientHost', "localhost")
@@ -71,7 +74,17 @@ def report_msg():
 
 		stats.append(stat)
 
-	post_fields = {'id': ClientID, 'host': ClientHost, 'status': stats}
+	mem = psutil.virtual_memory()
+
+	post_fields = {
+		'id': ClientID,
+		'host': ClientHost,
+		'status': stats,
+		'cpu_num': multiprocessing.cpu_count(),
+		'cpu_load': os.getloadavg()[0],
+		'mem_total': math.floor(mem.total / (1024. ** 3)),
+		'mem_available': math.floor(mem.available / (1024. ** 3))
+	}
 	data = json.dumps(post_fields)
 
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)

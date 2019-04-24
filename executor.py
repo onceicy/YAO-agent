@@ -118,6 +118,26 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.send_header('Content-type', 'application/json')
 			self.end_headers()
 			self.wfile.write(bytes(json.dumps(msg), "utf-8"))
+
+		elif self.path == "/remove":
+			form = cgi.FieldStorage(
+				fp=self.rfile,
+				headers=self.headers,
+				environ={
+					'REQUEST_METHOD': 'POST',
+					'CONTENT_TYPE': self.headers['Content-Type'],
+				})
+			container_id = form["id"].value
+
+			client = docker.from_env()
+			container = client.containers.get(container_id)
+			container.remove(force=True)
+			msg = {"code": 0}
+
+			self.send_response(200)
+			self.send_header('Content-type', 'application/json')
+			self.end_headers()
+			self.wfile.write(bytes(json.dumps(msg), "utf-8"))
 		else:
 			self.send_error(404, 'File Not Found: %s' % self.path)
 
