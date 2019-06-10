@@ -5,7 +5,7 @@ def run():
 	client = docker.from_env()
 	try:
 		print(client.containers.run(image="alpine", command="nvid", environment={"KEY": "value"}))
-		# print(client.containers.run(image="nvidia/cuda:9.0-base", command="nvidia-smi", environment={"KEY": "value"}, runtime="nvidia"))
+	# print(client.containers.run(image="nvidia/cuda:9.0-base", command="nvidia-smi", environment={"KEY": "value"}, runtime="nvidia"))
 	except Exception as e:
 		print(e.__class__.__name__, e)
 
@@ -50,4 +50,27 @@ def get_status(id):
 	print(container.attrs)
 
 
-get_status('')
+def create_network():
+	client = docker.from_env()
+	client.networks.create(name='yao-net-1024', driver='overlay', attachable=True)
+
+
+def list_networks():
+	client = docker.from_env()
+	networks = client.networks.list(filters={'name': 'yao-net-'})
+	result = []
+	for network in networks:
+		result.append(network.name)
+	print(result)
+
+
+def remove_network():
+	client = docker.from_env()
+	client.networks.prune(filters={'name': 'yao-net-1024'})
+
+
+#create_network()
+#list_networks()
+
+#remove_network()
+get_status('af121babda9b')
