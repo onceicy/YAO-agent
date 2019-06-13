@@ -69,8 +69,36 @@ def remove_network():
 	client.networks.prune(filters={'name': 'yao-net-1024'})
 
 
-#create_network()
-#list_networks()
+def create_container():
+	client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
-#remove_network()
+	host_config = client.create_host_config(
+		mem_limit='512m',
+		cpu_shares=1 * 1024
+	)
+	networking_config = client.create_networking_config(
+		endpoints_config={
+			'yao-net-1201': client.create_endpoint_config(
+				aliases=['node1'],
+			)
+		}
+	)
+
+	container = client.create_container(
+		image='alpine',
+		command='pwd',
+		hostname='node1',
+		detach=True,
+		host_config=host_config,
+		environment = {"repo": docker_workspace, "NVIDIA_VISIBLE_DEVICES": docker_gpus},
+		networking_config=networking_config,
+		runtime='nvidia'
+	)
+	client.start(container)
+
+
+# create_network()
+# list_networks()
+
+# remove_network()
 get_status('af121babda9b')

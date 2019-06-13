@@ -83,23 +83,35 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_workspace = form.getvalue('workspace')
 			docker_gpus = form.getvalue('gpus')
 			docker_mem_limit = form.getvalue('mem_limit')
-			docker_cpu_limit = form.getvalue('cpu_limit')
+			docker_cpu_limit = int(form.getvalue('cpu_limit'))
 			docker_network = form.getvalue('network')
 
 			try:
-				client = docker.from_env()
-				container = client.containers.run(
-					name=docker_name,
-					hostname=docker_name,
+				client = docker.APIClient(base_url='unix://var/run/docker.sock')
+
+				host_config = client.create_host_config(
+					mem_limit=docker_mem_limit,
+					cpu_shares=docker_cpu_limit * 1024
+				)
+				networking_config = client.create_networking_config(
+					endpoints_config={
+						docker_network: client.create_endpoint_config(
+							aliases=[docker_name],
+						)
+					}
+				)
+
+				container = client.create_container(
 					image=docker_image,
 					command=docker_cmd,
-					mem_limit=docker_mem_limit,
-					nano_cpus=docker_cpu_limit,
-					network=docker_network,
+					hostname=docker_name,
+					detach=True,
+					host_config=host_config,
 					environment={"repo": docker_workspace, "NVIDIA_VISIBLE_DEVICES": docker_gpus},
-					runtime="nvidia",
-					detach=True
+					networking_config=networking_config,
+					runtime='nvidia'
 				)
+				client.start(container)
 				msg = {"code": 0, "id": container.id}
 			except Exception as e:
 				msg = {"code": 1, "error": str(e)}
