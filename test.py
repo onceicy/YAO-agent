@@ -90,7 +90,7 @@ def create_container():
 		hostname='node1',
 		detach=True,
 		host_config=host_config,
-		environment = {"repo": docker_workspace, "NVIDIA_VISIBLE_DEVICES": docker_gpus},
+		environment = {"repo": '', "NVIDIA_VISIBLE_DEVICES": '0'},
 		networking_config=networking_config,
 		runtime='nvidia'
 	)
