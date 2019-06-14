@@ -8,7 +8,6 @@ from urllib import parse
 PORT_NUMBER = 8000
 
 
-# This class will handles any incoming request from the browser
 class MyHandler(BaseHTTPRequestHandler):
 	# Handler for the GET requests
 	def do_GET(self):
@@ -112,7 +111,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					runtime='nvidia'
 				)
 				client.start(container)
-				msg = {"code": 0, "id": container.id}
+				msg = {"code": 0, "id": container['Id']}
 			except Exception as e:
 				msg = {"code": 1, "error": str(e)}
 
@@ -131,10 +130,13 @@ class MyHandler(BaseHTTPRequestHandler):
 				})
 			container_id = form.getvalue('id')
 
-			client = docker.from_env()
-			container = client.containers.get(container_id)
-			container.stop()
-			msg = {"code": 0}
+			try:
+				client = docker.from_env()
+				container = client.containers.get(container_id)
+				container.stop()
+				msg = {"code": 0, "error": "Success"}
+			except Exception as e:
+				msg = {"code": 1, "error": str(e)}
 
 			self.send_response(200)
 			self.send_header('Content-type', 'application/json')
@@ -151,10 +153,13 @@ class MyHandler(BaseHTTPRequestHandler):
 				})
 			container_id = form.getvalue('id')
 
-			client = docker.from_env()
-			container = client.containers.get(container_id)
-			container.remove(force=True)
-			msg = {"code": 0}
+			try:
+				client = docker.from_env()
+				container = client.containers.get(container_id)
+				container.remove(force=True)
+				msg = {"code": 0, "error": "Success"}
+			except Exception as e:
+				msg = {"code": 1, "error": str(e)}
 
 			self.send_response(200)
 			self.send_header('Content-type', 'application/json')
