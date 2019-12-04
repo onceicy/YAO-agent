@@ -4,8 +4,7 @@ import docker
 def run():
 	client = docker.from_env()
 	try:
-		print(client.containers.run(image="alpine", command="nvid", environment={"KEY": "value"}))
-	# print(client.containers.run(image="nvidia/cuda:9.0-base", command="nvidia-smi", environment={"KEY": "value"}, runtime="nvidia"))
+		print(client.containers.run(image="alpine", command="pwd", environment={"KEY": "value"}))
 	except Exception as e:
 		print(e.__class__.__name__, e)
 
@@ -78,9 +77,9 @@ def create_container():
 	)
 	networking_config = client.create_networking_config(
 		endpoints_config={
-			'yao-net-1201': client.create_endpoint_config(
-				aliases=['node1'],
-			)
+			# 'yao-net-1201': client.create_endpoint_config(
+			# 	aliases=['node1'],
+			# )
 		}
 	)
 
@@ -90,15 +89,27 @@ def create_container():
 		hostname='node1',
 		detach=True,
 		host_config=host_config,
-		environment = {"repo": '', "NVIDIA_VISIBLE_DEVICES": '0'},
+		environment={"repo": '', "NVIDIA_VISIBLE_DEVICES": '0'},
 		networking_config=networking_config,
 		runtime='nvidia'
 	)
 	client.start(container)
+	print(container)
+
+
+def exec_run():
+	client = docker.from_env()
+	container = client.containers.get('yao-agent-helper')
+	exit_code, output = container.exec_run(cmd="sh -c 'docker run --gpus all --detach=True tensorflow/tensorflow:1.14.0-gpu nvidia-smi'")
+	if exit_code == 0:
+		print(output.decode('utf-8').rstrip('\n'))
 
 
 # create_network()
 # list_networks()
 
 # remove_network()
-get_status('af121babda9b')
+# get_status('af121babda9b')
+# exec_run()
+# run()
+create_container()

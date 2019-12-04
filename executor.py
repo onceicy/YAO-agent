@@ -82,36 +82,30 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_workspace = form.getvalue('workspace')
 			docker_gpus = form.getvalue('gpus')
 			docker_mem_limit = form.getvalue('mem_limit')
-			docker_cpu_limit = int(form.getvalue('cpu_limit'))
+			docker_cpu_limit = form.getvalue('cpu_limit')
 			docker_network = form.getvalue('network')
 
 			try:
-				client = docker.APIClient(base_url='unix://var/run/docker.sock')
+				script = " ".join([
+					"docker run",
+					"--gpus '\"device=" + docker_gpus + "\"'",
+					"--detach=True",
+					"--hostname " + docker_name,
+					"--network " + docker_network,
+					"--network-alias " + docker_name,
+					"--memory-reservation " + docker_mem_limit,
+					"--cpus " + docker_cpu_limit,
+					"--env repo=" + docker_workspace,
+					docker_image,
+					docker_cmd
+				])
 
-				host_config = client.create_host_config(
-					mem_limit=docker_mem_limit,
-					cpu_shares=docker_cpu_limit * 1024
-				)
-				networking_config = client.create_networking_config(
-					endpoints_config={
-						docker_network: client.create_endpoint_config(
-							aliases=[docker_name],
-						)
-					}
-				)
-
-				container = client.create_container(
-					image=docker_image,
-					command=docker_cmd,
-					hostname=docker_name,
-					detach=True,
-					host_config=host_config,
-					environment={"repo": docker_workspace, "NVIDIA_VISIBLE_DEVICES": docker_gpus},
-					networking_config=networking_config,
-					runtime='nvidia'
-				)
-				client.start(container)
-				msg = {"code": 0, "id": container['Id']}
+				client = docker.from_env()
+				container = client.containers.get('yao-agent-helper')
+				exit_code, output = container.exec_run('sh -c \'' + script + '\'')
+				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
+				if exit_code != 0:
+					msg["code"] = 1
 			except Exception as e:
 				msg = {"code": 1, "error": str(e)}
 
