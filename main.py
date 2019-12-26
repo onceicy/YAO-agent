@@ -310,8 +310,9 @@ def main():
 	t2 = threading.Thread(target=listen())
 	t1.start()
 	t2.start()
-	t2.join()
-	t1.join()
+	print("started")
+	while True:
+		pass
 
 
 if __name__ == '__main__':
