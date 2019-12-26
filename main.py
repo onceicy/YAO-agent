@@ -41,7 +41,8 @@ def launch_tasks(stats):
 			script = " ".join([
 				"docker exec",
 				id,
-				"pkill sleep"
+				"pkill",
+				"sleep"
 			])
 			container.exec_run('sh -c \'' + script + '\'')
 
