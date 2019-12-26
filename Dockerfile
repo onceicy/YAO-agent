@@ -18,6 +18,8 @@ ADD monitor.py /root/monitor.py
 
 ADD executor.py /root/executor.py
 
+ADD main.py /root/main.py
+
 WORKDIR /root
 
 CMD ["/etc/bootstrap.sh"]

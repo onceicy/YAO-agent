@@ -143,18 +143,14 @@ class MyHandler(BaseHTTPRequestHandler):
 					docker_cmd
 				])
 
-				print(script)
-
 				client = docker.from_env()
 				container = client.containers.get('yao-agent-helper')
 				exit_code, output = container.exec_run(['sh', '-c', script])
 				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
 
-				print(msg)
 				lock.acquire()
 				pending_tasks[msg['id']] = {'gpus': str(docker_gpus).split(',')}
 				lock.release()
-				print(msg)
 				if exit_code != 0:
 					msg["code"] = 1
 			except Exception as e:
