@@ -143,6 +143,8 @@ class MyHandler(BaseHTTPRequestHandler):
 					docker_cmd
 				])
 
+				print('sh -c \'' + script + '\'')
+
 				client = docker.from_env()
 				container = client.containers.get('yao-agent-helper')
 				exit_code, output = container.exec_run('sh -c \'' + script + '\'')
