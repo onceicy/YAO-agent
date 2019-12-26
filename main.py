@@ -32,7 +32,7 @@ def launch_tasks(stats):
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if stats[task['gpus'][0]]['utilization_gpu'] < 75:
+		if int(stats[task['gpus'][0]]['utilization_gpu']) < 75:
 			entries_to_remove.append(task_id)
 			script = " ".join([
 				"docker exec",
