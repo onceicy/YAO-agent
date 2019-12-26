@@ -27,12 +27,16 @@ pending_tasks = {}
 
 
 def launch_tasks(stats):
+	utils = {}
+	for stat in stats:
+		utils[stat['uuid']] = stat['utilization_gpu']
+
 	client = docker.from_env()
 	container = client.containers.get('yao-agent-helper')
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if int(stats[task['gpus'][0]]['utilization_gpu']) < 75:
+		if int(utils[task['gpus'][0]]) < 75:
 			entries_to_remove.append(task_id)
 			script = " ".join([
 				"docker exec",
