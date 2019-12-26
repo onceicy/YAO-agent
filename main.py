@@ -205,6 +205,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 def report():
+	print(KafkaBrokers)
 	interval = 5
 	while True:
 		try:
