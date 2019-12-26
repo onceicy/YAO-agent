@@ -131,7 +131,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			try:
 				script = " ".join([
 					"docker run",
-					"--gpus '\\\"device=" + docker_gpus + "\\\"'",
+					"--gpus '\"device=" + docker_gpus + "\"'",
 					"--detach=True",
 					"--hostname " + docker_name,
 					"--network " + docker_network,
