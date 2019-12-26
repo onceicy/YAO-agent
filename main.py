@@ -131,7 +131,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			try:
 				script = " ".join([
 					"docker run",
-					"--gpus '\\'\\\"device=" + docker_gpus + "\\\"$'\\'",
+					"--gpus '\"device=" + docker_gpus + "\"'",
 					"--detach=True",
 					"--hostname " + docker_name,
 					"--network " + docker_network,
@@ -143,7 +143,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					docker_cmd
 				])
 
-				print('sh -c ' + '\'' + script + '\'')
+				print(script)
 
 				client = docker.from_env()
 				container = client.containers.get('yao-agent-helper')
