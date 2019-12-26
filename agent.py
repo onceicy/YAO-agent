@@ -94,6 +94,8 @@ class MyHandler(BaseHTTPRequestHandler):
 						'hostname': container.attrs['Config']['Hostname'],
 						'state': container.attrs['State']
 					}
+					if container_id in pending_tasks:
+						status['status'] = 'Ready'
 					if status['command'] is not None:
 						status['command'] = ' '.join(container.attrs['Config']['Cmd'])
 					msg = {'code': 0, 'status': status}
@@ -311,18 +313,13 @@ def listener():
 		server.socket.close()
 
 
-def main():
-	t1 = Thread(target=report)
-	t2 = Thread(target=listener)
-	t1.start()
-	t2.start()
-	print("started")
-	while True:
-		pass
-
-
 if __name__ == '__main__':
 	os.environ["TZ"] = 'Asia/Shanghai'
 	if hasattr(time, 'tzset'):
 		time.tzset()
-	main()
+	t1 = Thread(target=report)
+	t2 = Thread(target=listener)
+	t1.start()
+	t2.start()
+	while True:
+		pass

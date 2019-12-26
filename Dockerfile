@@ -14,11 +14,7 @@ RUN pip3 install docker kafka psutil
 
 ADD bootstrap.sh /etc/bootstrap.sh
 
-ADD monitor.py /root/monitor.py
-
-ADD executor.py /root/executor.py
-
-ADD main.py /root/main.py
+ADD agent.py /root/agent.py
 
 WORKDIR /root
 
