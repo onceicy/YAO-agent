@@ -206,7 +206,6 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 def report():
-	print(KafkaBrokers)
 	interval = 5
 	while True:
 		try:
@@ -215,7 +214,7 @@ def report():
 				print("execute failed, ", msg_gpu)
 			stats = get_gpu_status()
 			report_msg(stats)
-			t = threading.Thread(target=launch_tasks, name='launch_tasks', args=(stats,))
+			t = Thread(target=launch_tasks, name='launch_tasks', args=(stats,))
 			t.start()
 			time.sleep(interval)
 		except Exception as e:
@@ -291,7 +290,7 @@ def report_msg(stats):
 	print(result)
 
 
-def listen():
+def listener():
 	try:
 		# Create a web server and define the handler to manage the
 		# incoming request
@@ -307,8 +306,8 @@ def listen():
 
 
 def main():
-	t1 = Thread(target=report())
-	t2 = Thread(target=listen())
+	t1 = Thread(target=report)
+	t2 = Thread(target=listener)
 	t1.start()
 	t2.start()
 	print("started")
