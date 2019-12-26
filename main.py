@@ -151,6 +151,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				lock.acquire()
 				pending_tasks[msg['id']] = {'gpus': str(docker_gpus).split(',')}
 				lock.release()
+				print(msg)
 				if exit_code != 0:
 					msg["code"] = 1
 			except Exception as e:
