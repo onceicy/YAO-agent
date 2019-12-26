@@ -40,7 +40,7 @@ def launch_tasks(stats):
 			entries_to_remove.append(task_id)
 			script = " ".join([
 				"docker exec",
-				id,
+				task_id,
 				"pkill",
 				"sleep"
 			])
