@@ -148,6 +148,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				exit_code, output = container.exec_run('sh -c \'' + script + '\'')
 				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
 
+				print(msg)
 				lock.acquire()
 				pending_tasks[msg['id']] = {'gpus': str(docker_gpus).split(',')}
 				lock.release()
