@@ -191,16 +191,17 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.send_error(404, 'File Not Found: %s' % self.path)
 
 
-try:
-	# Create a web server and define the handler to manage the
-	# incoming request
-	server = HTTPServer(('', PORT_NUMBER), MyHandler)
-	print('Started http server on port ', PORT_NUMBER)
+if __name__ == '__main__':
+	try:
+		# Create a web server and define the handler to manage the
+		# incoming request
+		server = HTTPServer(('', PORT_NUMBER), MyHandler)
+		print('Started http server on port ', PORT_NUMBER)
 
-	# Wait forever for incoming http requests
-	server.serve_forever()
+		# Wait forever for incoming http requests
+		server.serve_forever()
 
-except KeyboardInterrupt:
-	print('^C received, shutting down the web server')
+	except KeyboardInterrupt:
+		print('^C received, shutting down the web server')
 
-server.socket.close()
+	server.socket.close()
