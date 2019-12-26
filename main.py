@@ -1,5 +1,6 @@
 import os
-import threading
+from threading import Thread
+from threading import Lock
 import time
 import subprocess
 import json
@@ -21,7 +22,7 @@ KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 
 PORT_NUMBER = 8000
 
-lock = threading.Lock()
+lock = Lock()
 pending_tasks = {}
 
 
@@ -306,8 +307,8 @@ def listen():
 
 
 def main():
-	t1 = threading.Thread(target=report())
-	t2 = threading.Thread(target=listen())
+	t1 = Thread(target=report())
+	t2 = Thread(target=listen())
 	t1.start()
 	t2.start()
 	print("started")
