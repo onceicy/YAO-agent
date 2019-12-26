@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import cgi
 import docker
@@ -6,6 +7,29 @@ import json
 from urllib import parse
 
 PORT_NUMBER = 8000
+
+lock = threading.Lock()
+pending_tasks = {}
+
+
+def launch_tasks(stats):
+	client = docker.from_env()
+	container = client.containers.get('yao-agent-helper')
+	entries_to_remove = []
+	lock.acquire()
+	for task_id, task in pending_tasks.items():
+		if stats[task['gpus'][0]]['utilization_gpu'] < 75:
+			entries_to_remove.append(task_id)
+			script = " ".join([
+				"docker exec",
+				id,
+				"pkill sleep"
+			])
+			container.exec_run('sh -c \'' + script + '\'')
+
+	for k in entries_to_remove:
+		pending_tasks.pop(k, None)
+	lock.release()
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -104,6 +128,10 @@ class MyHandler(BaseHTTPRequestHandler):
 				container = client.containers.get('yao-agent-helper')
 				exit_code, output = container.exec_run('sh -c \'' + script + '\'')
 				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
+
+				lock.acquire()
+				pending_tasks[msg['id']] = {'gpus': str(docker_gpus).split(',')}
+				lock.release()
 				if exit_code != 0:
 					msg["code"] = 1
 			except Exception as e:

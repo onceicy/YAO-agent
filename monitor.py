@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 import subprocess
 import json
@@ -8,6 +9,7 @@ from kafka import KafkaProducer
 import multiprocessing
 import psutil
 import math
+from executor import launch_tasks
 
 ClientID = os.getenv('ClientID', 1)
 ClientHost = os.getenv('ClientHost', "localhost")
@@ -15,13 +17,16 @@ KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 
 
 def main():
-	interval = 10
+	interval = 5
 	while True:
 		try:
 			status, msg_gpu = execute(['nvidia-smi', '-q', '-x', '-f', 'status.xml'])
 			if not status:
 				print("execute failed, ", msg_gpu)
-			report_msg()
+			stats = get_gpu_status()
+			report_msg(stats)
+			t = threading.Thread(target=launch_tasks, name='launch_tasks',args=(stats,))
+			t.start()
 			time.sleep(interval)
 		except Exception as e:
 			print(e)
@@ -38,7 +43,7 @@ def execute(cmd):
 		return False, e
 
 
-def report_msg():
+def get_gpu_status():
 	DOMTree = xml.dom.minidom.parse("status.xml")
 	collection = DOMTree.documentElement
 	gpus = collection.getElementsByTagName("gpu")
@@ -73,7 +78,10 @@ def report_msg():
 		stat['power_draw'] = int(float(stat['power_draw'].split(' ')[0]))
 
 		stats.append(stat)
+	return stats
 
+
+def report_msg(stats):
 	mem = psutil.virtual_memory()
 
 	post_fields = {
