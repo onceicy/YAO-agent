@@ -308,8 +308,8 @@ def listen():
 def main():
 	t1 = threading.Thread(target=report())
 	t2 = threading.Thread(target=listen())
-	t1.start()
 	t2.start()
+	t1.start()
 	t1.join()
 	t2.join()
 
