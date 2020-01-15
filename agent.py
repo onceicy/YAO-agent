@@ -36,7 +36,7 @@ def launch_tasks(stats):
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if int(utils[task['gpus'][0]]) < 75:
+		if int(utils[task['gpus'][0]]) < 85:
 			entries_to_remove.append(task_id)
 			script = " ".join([
 				"docker exec",
@@ -155,6 +155,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				lock.release()
 				if exit_code != 0:
 					msg["code"] = 1
+					msg["error"] = output.decode('utf-8').rstrip('\n')
 			except Exception as e:
 				msg = {"code": 1, "error": str(e)}
 				print(str(e))
@@ -214,7 +215,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 def report():
-	interval = 5
+	interval = 1
 	while True:
 		try:
 			status, msg_gpu = execute(['nvidia-smi', '-q', '-x', '-f', 'status.xml'])
@@ -322,4 +323,5 @@ if __name__ == '__main__':
 	t1.start()
 	t2.start()
 	while True:
+		time.sleep(1)
 		pass
