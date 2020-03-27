@@ -283,6 +283,8 @@ def get_gpu_status():
 
 
 def report_msg(stats):
+	global last_version
+	global ver
 	mem = psutil.virtual_memory()
 
 	post_fields = {
