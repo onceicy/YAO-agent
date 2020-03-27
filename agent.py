@@ -25,6 +25,9 @@ PORT_NUMBER = 8000
 lock = Lock()
 pending_tasks = {}
 
+ver = 0
+last_version = {}
+
 
 def launch_tasks(stats):
 	utils = {}
@@ -291,6 +294,30 @@ def report_msg(stats):
 		'mem_total': math.floor(mem.total / (1024. ** 3)),
 		'mem_available': math.floor(mem.available / (1024. ** 3))
 	}
+
+	flag = False
+	if 'cpu_num' in last_version:  # not null
+		if abs(last_version['cpu_num'] - post_fields['cpu_num']) > 0.0:
+			flag = True
+		if abs(last_version['cpu_load'] - post_fields['cpu_load']) > 1.0:
+			flag = True
+		if abs(last_version['mem_total'] - post_fields['mem_total']) > 0.0:
+			flag = True
+		if abs(last_version['mem_available'] - post_fields['mem_available']) > 2.0:
+			flag = True
+		for stat in stats:
+			if abs(last_version['status']['memory_total'] - stat['memory_total']) > 0.0:
+				flag = True
+			if abs(last_version['status']['memory_free'] - stat['memory_free']) > 512.0:
+				flag = True
+			if abs(last_version['status']['utilization_gpu'] - stat['utilization_gpu']) > 15.0:
+				flag = True
+
+	if flag:
+		ver = time.time()
+		last_version = post_fields
+
+	post_fields['flag'] = ver
 	data = json.dumps(post_fields)
 
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
@@ -323,5 +350,5 @@ if __name__ == '__main__':
 	t1.start()
 	t2.start()
 	while True:
-		time.sleep(1)
+		time.sleep(5)
 		pass
