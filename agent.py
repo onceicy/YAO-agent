@@ -39,7 +39,7 @@ def launch_tasks(stats):
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if int(utils[task['gpus'][0]]) < 85:
+		if int(utils[task['gpus'][0]]) < 70:
 			entries_to_remove.append(task_id)
 			script = " ".join([
 				"docker exec",
@@ -307,13 +307,15 @@ def report_msg(stats):
 			flag = True
 		if abs(last_version['mem_available'] - post_fields['mem_available']) > 2.0:
 			flag = True
-		for stat in stats:
-			if abs(last_version['status']['memory_total'] - stat['memory_total']) > 0.0:
+		for i in range(len(stats)):
+			if abs(last_version['status'][i]['memory_total'] - post_fields['status'][i]['memory_total']) > 0.0:
 				flag = True
-			if abs(last_version['status']['memory_free'] - stat['memory_free']) > 512.0:
+			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) > 512.0:
 				flag = True
-			if abs(last_version['status']['utilization_gpu'] - stat['utilization_gpu']) > 15.0:
+			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 15.0:
 				flag = True
+	else:
+		flag = True
 
 	if flag:
 		ver = time.time()
@@ -321,6 +323,10 @@ def report_msg(stats):
 
 	post_fields['flag'] = ver
 	data = json.dumps(post_fields)
+
+	if flag:
+		print(ver)
+		print(post_fields)
 
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
 	future = producer.send('yao', value=data.encode(), partition=0)
