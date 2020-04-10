@@ -38,7 +38,7 @@ def launch_tasks(stats):
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if int(utils[task['gpus'][0]]) < 70:
+		if int(utils[task['gpus'][0]]) < 60:
 			entries_to_remove.append(task_id)
 			script = " ".join([
 				"docker exec",
@@ -97,7 +97,7 @@ class MyHandler(BaseHTTPRequestHandler):
 						'state': container.attrs['State']
 					}
 					if container_id in pending_tasks:
-						status['status'] = 'Ready'
+						status['status'] = 'ready'
 					if status['command'] is not None:
 						status['command'] = ' '.join(container.attrs['Config']['Cmd'])
 					msg = {'code': 0, 'status': status}
@@ -311,7 +311,7 @@ def report_msg(stats):
 				flag = True
 			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) / post_fields['status'][i]['memory_total'] > 0.05:
 				flag = True
-			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 15.0:
+			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 10.0:
 				flag = True
 	else:
 		flag = True
