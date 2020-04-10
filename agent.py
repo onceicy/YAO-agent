@@ -10,7 +10,6 @@ from kafka import KafkaProducer
 import multiprocessing
 import psutil
 import math
-from executor import launch_tasks
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import cgi
 import docker
@@ -321,7 +320,7 @@ def report_msg(stats):
 		ver = time.time()
 		last_version = post_fields
 
-	post_fields['flag'] = ver
+	post_fields['version'] = ver
 	data = json.dumps(post_fields)
 
 	if flag:
