@@ -217,7 +217,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 def report():
-	interval = 1
+	interval = 3
 	while True:
 		try:
 			status, msg_gpu = execute(['nvidia-smi', '-q', '-x', '-f', 'status.xml'])
