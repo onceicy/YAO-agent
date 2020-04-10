@@ -309,7 +309,7 @@ def report_msg(stats):
 		for i in range(len(stats)):
 			if abs(last_version['status'][i]['memory_total'] - post_fields['status'][i]['memory_total']) > 0.0:
 				flag = True
-			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) > 512.0:
+			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) / post_fields['status'][i]['memory_total'] > 0.05:
 				flag = True
 			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 15.0:
 				flag = True
