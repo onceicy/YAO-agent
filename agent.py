@@ -46,7 +46,12 @@ def launch_tasks(stats):
 				"pkill",
 				"sleep"
 			])
-			container.exec_run('sh -c \'' + script + '\'')
+
+			while True:
+				code = container.exec_run('sh -c \'' + script + '\'').exit_code
+				if code == 0:
+					break
+				time.sleep(0.1)
 
 	for k in entries_to_remove:
 		pending_tasks.pop(k, None)
