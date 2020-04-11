@@ -28,6 +28,21 @@ ver = 0
 last_version = {}
 
 
+def launch_task_in_background(container, task_id):
+	script = " ".join([
+		"docker exec",
+		task_id,
+		"pkill",
+		"sleep"
+	])
+
+	while True:
+		code = container.exec_run('sh -c \'' + script + '\'').exit_code
+		if code == 0:
+			break
+		time.sleep(0.1)
+
+
 def launch_tasks(stats):
 	utils = {}
 	for stat in stats:
@@ -40,18 +55,9 @@ def launch_tasks(stats):
 	for task_id, task in pending_tasks.items():
 		if int(utils[task['gpus'][0]]) < 60:
 			entries_to_remove.append(task_id)
-			script = " ".join([
-				"docker exec",
-				task_id,
-				"pkill",
-				"sleep"
-			])
 
-			while True:
-				code = container.exec_run('sh -c \'' + script + '\'').exit_code
-				if code == 0:
-					break
-				time.sleep(0.1)
+			t = Thread(target=launch_task_in_background, name='launch_task', args=(container, task_id,))
+			t.start()
 
 	for k in entries_to_remove:
 		pending_tasks.pop(k, None)
