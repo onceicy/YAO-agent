@@ -311,18 +311,18 @@ def report_msg(stats):
 	if 'cpu_num' in last_version:  # not null
 		if abs(last_version['cpu_num'] - post_fields['cpu_num']) > 0.0:
 			flag = True
-		if abs(last_version['cpu_load'] - post_fields['cpu_load']) > 1.0:
+		if abs(last_version['cpu_load'] - post_fields['cpu_load']) / post_fields['cpu_num'] > 0.1:
 			flag = True
 		if abs(last_version['mem_total'] - post_fields['mem_total']) > 0.0:
 			flag = True
-		if abs(last_version['mem_available'] - post_fields['mem_available']) > 2.0:
+		if abs(last_version['mem_available'] - post_fields['mem_available']) / post_fields['mem_available'] > 0.05:
 			flag = True
 		for i in range(len(stats)):
 			if abs(last_version['status'][i]['memory_total'] - post_fields['status'][i]['memory_total']) > 0.0:
 				flag = True
 			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) / post_fields['status'][i]['memory_total'] > 0.05:
 				flag = True
-			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 10.0:
+			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 15.0:
 				flag = True
 	else:
 		flag = True
