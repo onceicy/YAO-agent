@@ -191,7 +191,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			try:
 				client = docker.from_env()
 				container = client.containers.get(container_id)
-				container.stop()
+				container.stop(timeout=1)
 				msg = {"code": 0, "error": "Success"}
 			except Exception as e:
 				msg = {"code": 1, "error": str(e)}
