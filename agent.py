@@ -27,6 +27,8 @@ pending_tasks = {}
 ver = 0
 last_version = {}
 
+counter = {}
+
 
 def launch_task_in_background(container, task_id):
 	script = " ".join([
@@ -47,13 +49,19 @@ def launch_tasks(stats):
 	utils = {}
 	for stat in stats:
 		utils[stat['uuid']] = stat['utilization_gpu']
+		if int(stat['utilization_gpu']) < 60:
+			if stat['uuid'] not in counter:
+				counter[stat['uuid']] = 0
+			counter[stat['uuid']] += 1
+		else:
+			counter[stat['uuid']] = 0
 
 	client = docker.from_env()
 	container = client.containers.get('yao-agent-helper')
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if int(utils[task['gpus'][0]]) < 60:
+		if int(utils[task['gpus'][0]]) < 60 and counter[task['gpus'][0]] >= 2:
 			entries_to_remove.append(task_id)
 
 			t = Thread(target=launch_task_in_background, name='launch_task', args=(container, task_id,))
@@ -142,6 +150,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_mem_limit = form.getvalue('mem_limit')
 			docker_cpu_limit = form.getvalue('cpu_limit')
 			docker_network = form.getvalue('network')
+			docker_wait = form.getvalue('should_wait')
 
 			try:
 				script = " ".join([
@@ -154,6 +163,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--memory-reservation " + docker_mem_limit,
 					"--cpus " + docker_cpu_limit,
 					"--env repo=" + docker_workspace,
+					"--env should_wait=" + docker_wait,
 					docker_image,
 					docker_cmd
 				])
@@ -320,7 +330,8 @@ def report_msg(stats):
 		for i in range(len(stats)):
 			if abs(last_version['status'][i]['memory_total'] - post_fields['status'][i]['memory_total']) > 0.0:
 				flag = True
-			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) / post_fields['status'][i]['memory_total'] > 0.05:
+			if abs(last_version['status'][i]['memory_free'] - post_fields['status'][i]['memory_free']) / \
+					post_fields['status'][i]['memory_total'] > 0.05:
 				flag = True
 			if abs(last_version['status'][i]['utilization_gpu'] - post_fields['status'][i]['utilization_gpu']) > 25.0:
 				flag = True
