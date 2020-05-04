@@ -47,6 +47,7 @@ def launch_task_in_background(container, task_id):
 
 def launch_tasks(stats):
 	utils = {}
+	mems = {}
 	for stat in stats:
 		utils[stat['uuid']] = stat['utilization_gpu']
 		if int(stat['utilization_gpu']) < 60:
@@ -55,13 +56,15 @@ def launch_tasks(stats):
 			counter[stat['uuid']] += 1
 		else:
 			counter[stat['uuid']] = 0
+		mems[stat['uuid']] = stat['memory_free']
 
 	client = docker.from_env()
 	container = client.containers.get('yao-agent-helper')
 	entries_to_remove = []
 	lock.acquire()
 	for task_id, task in pending_tasks.items():
-		if int(utils[task['gpus'][0]]) < 60 and counter[task['gpus'][0]] >= 2:
+		if int(utils[task['gpus'][0]]) < 60 and counter[task['gpus'][0]] >= 2 \
+				and mems[task['gpus'][0]] > task['gpu_mem']:
 			entries_to_remove.append(task_id)
 
 			t = Thread(target=launch_task_in_background, name='launch_task', args=(container, task_id,))
@@ -151,6 +154,9 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_cpu_limit = form.getvalue('cpu_limit')
 			docker_network = form.getvalue('network')
 			docker_wait = form.getvalue('should_wait')
+			docker_output = form.getvalue('output_dir')
+			docker_hdfs_dir = form.getvalue('hdfs_dir')
+			docker_gpu_mem = form.getvalue('gpu_mem')
 
 			try:
 				script = " ".join([
@@ -164,6 +170,9 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--cpus " + docker_cpu_limit,
 					"--env repo=" + docker_workspace,
 					"--env should_wait=" + docker_wait,
+					"--env output_dir=" + docker_output,
+					"--env hdfs_dir=" + docker_hdfs_dir,
+					"--env gpu_mem=" + docker_gpu_mem,
 					docker_image,
 					docker_cmd
 				])
@@ -174,7 +183,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
 
 				lock.acquire()
-				pending_tasks[msg['id']] = {'gpus': str(docker_gpus).split(',')}
+				pending_tasks[msg['id']] = {'gpus': str(docker_gpus).split(','), 'gpu_mem': int(docker_gpu_mem)}
 				lock.release()
 				if exit_code != 0:
 					msg["code"] = 1
