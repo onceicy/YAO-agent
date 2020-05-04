@@ -155,6 +155,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_network = form.getvalue('network')
 			docker_wait = form.getvalue('should_wait')
 			docker_output = form.getvalue('output_dir')
+			docker_hdfs_address = form.getvalue('hdfs_address')
 			docker_hdfs_dir = form.getvalue('hdfs_dir')
 			docker_gpu_mem = form.getvalue('gpu_mem')
 
@@ -171,6 +172,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--env repo=" + docker_workspace,
 					"--env should_wait=" + docker_wait,
 					"--env output_dir=" + docker_output,
+					"--env hdfs_address=" + docker_hdfs_address,
 					"--env hdfs_dir=" + docker_hdfs_dir,
 					"--env gpu_mem=" + docker_gpu_mem,
 					docker_image,
