@@ -118,7 +118,7 @@ class MyHandler(BaseHTTPRequestHandler):
 						'hostname': container.attrs['Config']['Hostname'],
 						'state': container.attrs['State']
 					}
-					#if container_id in pending_tasks:
+					# if container_id in pending_tasks:
 					#	status['status'] = 'ready'
 					if status['command'] is not None:
 						status['command'] = ' '.join(container.attrs['Config']['Cmd'])
@@ -190,6 +190,7 @@ class MyHandler(BaseHTTPRequestHandler):
 				if exit_code != 0:
 					msg["code"] = 1
 					msg["error"] = output.decode('utf-8').rstrip('\n')
+					print(msg["error"])
 			except Exception as e:
 				msg = {"code": 1, "error": str(e)}
 				print(str(e))
@@ -363,7 +364,7 @@ def report_msg(stats):
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
 	future = producer.send('yao', value=data.encode(), partition=0)
 	result = future.get(timeout=10)
-	print(result)
+	# print(result)
 
 
 def listener():
