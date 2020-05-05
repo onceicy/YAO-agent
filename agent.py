@@ -118,8 +118,8 @@ class MyHandler(BaseHTTPRequestHandler):
 						'hostname': container.attrs['Config']['Hostname'],
 						'state': container.attrs['State']
 					}
-					if container_id in pending_tasks:
-						status['status'] = 'ready'
+					#if container_id in pending_tasks:
+					#	status['status'] = 'ready'
 					if status['command'] is not None:
 						status['command'] = ' '.join(container.attrs['Config']['Cmd'])
 					msg = {'code': 0, 'status': status}
