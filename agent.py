@@ -33,6 +33,10 @@ id2token = {}
 
 counter = {}
 
+event_counter = 0
+
+client = docker.from_env()
+
 
 def generate_token(stringLength=8):
 	letters = string.ascii_lowercase
@@ -79,7 +83,8 @@ class MyHandler(BaseHTTPRequestHandler):
 		elif req.path == "/debug":
 			msg = {
 				'pending_tasks': pending_tasks,
-				'id2token': id2token
+				'id2token': id2token,
+				'event_counter': event_counter
 			}
 			self.send_response(200)
 			self.send_header('Content-type', 'application/json')
@@ -106,7 +111,6 @@ class MyHandler(BaseHTTPRequestHandler):
 		elif req.path == "/logs":
 			try:
 				container_id = query.get('id')[0]
-				client = docker.from_env()
 				container = client.containers.get(container_id)
 				msg = {'code': 0, 'logs': str(container.logs().decode())}
 			except Exception as e:
@@ -119,7 +123,6 @@ class MyHandler(BaseHTTPRequestHandler):
 		elif req.path == "/status":
 			try:
 				container_id = query.get('id')[0]
-				client = docker.from_env()
 				container = client.containers.list(all=True, filters={'id': container_id})
 				if len(container) > 0:
 					container = container[0]
@@ -201,7 +204,6 @@ class MyHandler(BaseHTTPRequestHandler):
 					docker_cmd
 				])
 
-				client = docker.from_env()
 				container = client.containers.get('yao-agent-helper')
 				exit_code, output = container.exec_run(['sh', '-c', script])
 				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
@@ -234,7 +236,6 @@ class MyHandler(BaseHTTPRequestHandler):
 			container_id = form.getvalue('id')
 
 			try:
-				client = docker.from_env()
 				container = client.containers.get(container_id)
 				container.stop(timeout=1)
 				msg = {"code": 0, "error": "Success"}
@@ -257,7 +258,6 @@ class MyHandler(BaseHTTPRequestHandler):
 			container_id = form.getvalue('id')
 
 			try:
-				client = docker.from_env()
 				container = client.containers.get(container_id)
 				container.remove(force=True)
 				msg = {"code": 0, "error": "Success"}
@@ -273,9 +273,10 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 def event_trigger():
-	client = docker.from_env()
+	global event_counter
 	for event in client.events(decode=True, filters={'event': 'die'}):
 		Thread(target=report).start()
+		event_counter += 1
 		print(event)
 
 
