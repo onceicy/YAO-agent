@@ -286,8 +286,7 @@ def report():
 			print("execute failed, ", msg_gpu)
 		stats = get_gpu_status()
 		report_msg(stats)
-		t = Thread(target=launch_tasks, name='launch_tasks', args=(stats,))
-		t.start()
+		Thread(target=launch_tasks, name='launch_tasks', args=(stats,)).start()
 	except Exception as e:
 		print(e)
 
@@ -385,19 +384,12 @@ if __name__ == '__main__':
 	os.environ["TZ"] = 'Asia/Shanghai'
 	if hasattr(time, 'tzset'):
 		time.tzset()
-	threads = []
-	t1 = Thread(target=reporter)
-	threads.append(t1)
-	t2 = Thread(target=listener)
-	threads.append(t2)
+
+	Thread(target=reporter).start()
+	Thread(target=listener).start()
 	if EnableEventTrigger == 'true':
-		t3 = Thread(target=event_trigger)
-		threads.append(t3)
+		print('start event trigger')
+		Thread(target=event_trigger).start()
 
-	# Start all threads
-	for t in threads:
-		t.start()
-
-	# Wait for all of them to finish
-	for t in threads:
-		t.join()
+	while True:
+		time.sleep(5)

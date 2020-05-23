@@ -1,32 +1,29 @@
 import os
-import threading
 import time
 import subprocess
 import json
 from xml.dom.minidom import parse
 import xml.dom.minidom
-from kafka import KafkaProducer
 import multiprocessing
 import psutil
 import math
-from executor import launch_tasks
-
-ClientID = os.getenv('ClientID', 1)
-ClientHost = os.getenv('ClientHost', "localhost")
-KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
+import datetime
 
 
 def main():
-	interval = 5
+	interval = 1
 	while True:
 		try:
 			status, msg_gpu = execute(['nvidia-smi', '-q', '-x', '-f', 'status.xml'])
 			if not status:
 				print("execute failed, ", msg_gpu)
 			stats = get_gpu_status()
-			report_msg(stats)
-			t = threading.Thread(target=launch_tasks, name='launch_tasks',args=(stats,))
-			t.start()
+			utils = []
+			for stat in stats:
+				utils.append(str(stat['utilization_gpu']))
+			# report_msg(stats)
+			t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(str(t) + ',' + ','.join(utils))
 			time.sleep(interval)
 		except Exception as e:
 			print(e)
@@ -85,8 +82,6 @@ def report_msg(stats):
 	mem = psutil.virtual_memory()
 
 	post_fields = {
-		'id': ClientID,
-		'host': ClientHost,
 		'status': stats,
 		'cpu_num': multiprocessing.cpu_count(),
 		'cpu_load': os.getloadavg()[0],
@@ -94,11 +89,6 @@ def report_msg(stats):
 		'mem_available': math.floor(mem.available / (1024. ** 3))
 	}
 	data = json.dumps(post_fields)
-
-	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
-	future = producer.send('yao', value=data.encode(), partition=0)
-	result = future.get(timeout=10)
-	print(result)
 
 
 if __name__ == '__main__':
