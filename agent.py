@@ -25,6 +25,8 @@ KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 PORT = os.getenv('Port', 8000)
 HeartbeatInterval = os.getenv('HeartbeatInterval', 5)
 
+EnableEventTrigger = os.getenv('EnableEventTrigger', 'true')
+
 lock = Lock()
 # pending_tasks = {}
 id2token = {}
@@ -381,12 +383,19 @@ if __name__ == '__main__':
 	os.environ["TZ"] = 'Asia/Shanghai'
 	if hasattr(time, 'tzset'):
 		time.tzset()
+	threads = []
 	t1 = Thread(target=reporter)
+	threads.append(t1)
 	t2 = Thread(target=listener)
-	t3 = Thread(target=event_trigger)
-	t1.start()
-	t2.start()
-	t3.start()
-	t1.join()
-	t2.join()
-	t3.join()
+	threads.append(t2)
+	if EnableEventTrigger == 'true':
+		t3 = Thread(target=event_trigger)
+		threads.append(t3)
+
+	# Start all threads
+	for t in threads:
+		t.start()
+
+	# Wait for all of them to finish
+	for t in threads:
+		t.join()
