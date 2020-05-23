@@ -22,8 +22,8 @@ ClientHost = os.getenv('ClientHost', "localhost")
 ClientExtHost = os.getenv('ClientExtHost', "localhost")
 KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 
-PORT = os.getenv('Port', 8000)
-HeartbeatInterval = os.getenv('HeartbeatInterval', 5)
+PORT = int(os.getenv('Port', 8000))
+HeartbeatInterval = int(os.getenv('HeartbeatInterval', 5))
 
 EnableEventTrigger = os.getenv('EnableEventTrigger', 'true')
 
@@ -76,7 +76,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.end_headers()
 			self.wfile.write(bytes("pong", "utf-8"))
 
-		if req.path == "/debug":
+		elif req.path == "/debug":
 			msg = {
 				'pending_tasks': pending_tasks,
 				'id2token': id2token
@@ -86,7 +86,7 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.end_headers()
 			self.wfile.write(bytes(json.dumps(msg), "utf-8"))
 
-		if req.path == "/can_run":
+		elif req.path == "/can_run":
 			res = "1"
 			try:
 				token = query.get('token')[0]
@@ -138,6 +138,8 @@ class MyHandler(BaseHTTPRequestHandler):
 						token = id2token[container_id]
 						if token in pending_tasks:
 							status['status'] = 'ready'
+						else:
+							id2token.pop(container_id, None)
 					if status['command'] is not None:
 						status['command'] = ' '.join(container.attrs['Config']['Cmd'])
 					msg = {'code': 0, 'status': status}
@@ -190,7 +192,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--cpus " + docker_cpu_limit,
 					"--env repo=" + docker_workspace,
 					"--env should_wait=" + docker_wait,
-					"--env should_cb=" + 'http://' + ClientExtHost + ':' + PORT + '/can_run?token=' + token,
+					"--env should_cb=" + 'http://' + ClientExtHost + ':' + str(PORT) + '/can_run?token=' + token,
 					"--env output_dir=" + docker_output,
 					"--env hdfs_address=" + docker_hdfs_address,
 					"--env hdfs_dir=" + docker_hdfs_dir,
