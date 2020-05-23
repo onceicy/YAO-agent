@@ -28,7 +28,7 @@ HeartbeatInterval = os.getenv('HeartbeatInterval', 5)
 EnableEventTrigger = os.getenv('EnableEventTrigger', 'true')
 
 lock = Lock()
-# pending_tasks = {}
+pending_tasks = {}
 id2token = {}
 
 counter = {}
