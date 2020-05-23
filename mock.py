@@ -10,8 +10,8 @@ NUMS = os.getenv('NUMS', 1)
 
 ClientHost = os.getenv('ClientHost', "localhost")
 KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
-
-PORT_NUMBER = 8000
+PORT = os.getenv('Port', 8000)
+HeartbeatInterval = os.getenv('HeartbeatInterval', 5)
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -85,7 +85,6 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 def report(ClientID):
-	interval = 3
 	while True:
 		try:
 			stats = []
@@ -119,21 +118,21 @@ def report(ClientID):
 
 			producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
 			future = producer.send('yao', value=data.encode(), partition=0)
-			result = future.get(timeout=10)
-			# print(result)
+			result = future.get(timeout=5)
 
-			time.sleep(interval)
+			time.sleep(HeartbeatInterval)
 		except Exception as e:
 			print(e)
-			time.sleep(interval)
+			time.sleep(HeartbeatInterval)
 
 
 def listener():
+	global server
 	try:
 		# Create a web server and define the handler to manage the
 		# incoming request
-		server = HTTPServer(('', PORT_NUMBER), MyHandler)
-		print('Started http server on port ', PORT_NUMBER)
+		server = HTTPServer(('', PORT), MyHandler)
+		print('Started http server on port ', PORT)
 
 		# Wait forever for incoming http requests
 		server.serve_forever()
@@ -147,14 +146,18 @@ if __name__ == '__main__':
 	os.environ["TZ"] = 'Asia/Shanghai'
 	if hasattr(time, 'tzset'):
 		time.tzset()
-	t1 = Thread(target=report)
-
-	for i in range(0, int(NUMS)):
-		t = Thread(target=report, name=ClientHost + '_' + str(i), args=(ClientHost + '_' + str(i),))
-		t.start()
+	threads = []
+	for clientID in range(0, int(NUMS)):
+		t = Thread(target=report, name=ClientHost + '_' + str(clientID), args=(ClientHost + '_' + str(clientID),))
+		threads.append(t)
 
 	t2 = Thread(target=listener)
-	t2.start()
-	while True:
-		time.sleep(5)
-		pass
+	threads.append(t2)
+
+	# Start all threads
+	for t in threads:
+		t.start()
+
+	# Wait for all of them to finish
+	for t in threads:
+		t.join()
