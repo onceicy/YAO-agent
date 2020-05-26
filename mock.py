@@ -90,7 +90,7 @@ def report(ClientID):
 			stats = []
 			for i in range(0, 4):
 				stat = {
-					'uuid': 'UUID-' + str(i),
+					'uuid': 'UUID-' + ClientID + '-' + str(i),
 					'product_name': 'K80',
 					'performance_state': 'P0',
 					'memory_total': 11260,
@@ -106,6 +106,8 @@ def report(ClientID):
 
 			post_fields = {
 				'id': ClientID,
+				'rack': ClientHost,
+				'domain': ClientHost,
 				'host': ClientHost,
 				'status': stats,
 				'cpu_num': 64,

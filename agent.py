@@ -22,6 +22,9 @@ ClientHost = os.getenv('ClientHost', "localhost")
 ClientExtHost = os.getenv('ClientExtHost', "localhost")
 KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
 
+RackID = os.getenv('RackID', "default")
+DomainID = os.getenv('DomainID', "default")
+
 PORT = int(os.getenv('Port', 8000))
 HeartbeatInterval = int(os.getenv('HeartbeatInterval', 5))
 
@@ -350,6 +353,8 @@ def report_msg(stats):
 	mem = psutil.virtual_memory()
 	post_fields = {
 		'id': ClientID,
+		'rack': RackID,
+		'domain': DomainID,
 		'host': ClientHost,
 		'status': stats,
 		'cpu_num': multiprocessing.cpu_count(),

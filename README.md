@@ -7,7 +7,7 @@ bin/kafka-topics.sh \
 	--create \
 	--zookeeper zookeeper-node1:2181,zookeeper-node2:2181,zookeeper-node3:2181 \
 	--replication-factor 3 \
-	--partitions 1 \
+	--partitions 6 \
 	--topic yao
 ```
 
