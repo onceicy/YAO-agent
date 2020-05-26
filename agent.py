@@ -211,10 +211,11 @@ class MyHandler(BaseHTTPRequestHandler):
 				exit_code, output = container.exec_run(['sh', '-c', script])
 				msg = {"code": 0, "id": output.decode('utf-8').rstrip('\n')}
 
-				lock.acquire()
-				pending_tasks[token] = {'gpus': str(docker_gpus).split(','), 'gpu_mem': int(docker_gpu_mem)}
-				id2token[msg['id']] = token
-				lock.release()
+				if docker_wait == "1":
+					lock.acquire()
+					pending_tasks[token] = {'gpus': str(docker_gpus).split(','), 'gpu_mem': int(docker_gpu_mem)}
+					id2token[msg['id']] = token
+					lock.release()
 				if exit_code != 0:
 					msg["code"] = 1
 					msg["error"] = output.decode('utf-8').rstrip('\n')
