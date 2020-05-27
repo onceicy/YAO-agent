@@ -4,6 +4,7 @@ import time
 import json
 from kafka import KafkaProducer
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 from urllib import parse
 
 NUMS = os.getenv('NUMS', 1)
@@ -84,6 +85,10 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.send_error(404, 'File Not Found: %s' % self.path)
 
 
+class ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
+	pass
+
+
 def report(ClientID):
 	while True:
 		try:
@@ -133,7 +138,7 @@ def listener():
 	try:
 		# Create a web server and define the handler to manage the
 		# incoming request
-		server = HTTPServer(('', PORT), MyHandler)
+		server = ThreadingSimpleServer(('', PORT), MyHandler)
 		print('Started http server on port ', PORT)
 
 		# Wait forever for incoming http requests
