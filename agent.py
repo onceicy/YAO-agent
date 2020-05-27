@@ -11,6 +11,7 @@ import multiprocessing
 import psutil
 import math
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 import cgi
 import docker
 from urllib import parse
@@ -276,6 +277,10 @@ class MyHandler(BaseHTTPRequestHandler):
 			self.send_error(404, 'File Not Found: %s' % self.path)
 
 
+class ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
+	pass
+
+
 def event_trigger():
 	global event_counter
 	for event in client.events(decode=True, filters={'event': 'die'}):
@@ -377,7 +382,7 @@ def listener():
 	try:
 		# Create a web server and define the handler to manage the
 		# incoming request
-		server = HTTPServer(('', PORT), MyHandler)
+		server = ThreadingSimpleServer(('', PORT), MyHandler)
 		print('Started http server on port ', PORT)
 
 		# Wait forever for incoming http requests
