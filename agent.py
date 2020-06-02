@@ -185,7 +185,15 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_hdfs_address = form.getvalue('hdfs_address')
 			docker_hdfs_dir = form.getvalue('hdfs_dir')
 			docker_gpu_mem = form.getvalue('gpu_mem')
+			docker_dfs_src = form.getvalue('dfs_src')
+			docker_dfs_dst = form.getvalue('dfs_dst')
 			token = generate_token(16)
+
+			try:
+				os.mkdir(docker_dfs_src)
+			except OSError as e:
+				print("Creation of the directory %s failed" % docker_dfs_src)
+				print(e)
 
 			try:
 				script = " ".join([
@@ -204,6 +212,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--env hdfs_address=" + docker_hdfs_address,
 					"--env hdfs_dir=" + docker_hdfs_dir,
 					"--env gpu_mem=" + docker_gpu_mem,
+					"--mount type=bind,src=" + docker_dfs_src + ",dst=" + docker_dfs_dst,
 					docker_image,
 					docker_cmd
 				])
