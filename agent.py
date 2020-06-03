@@ -17,6 +17,7 @@ import docker
 from urllib import parse
 import random
 import string
+from pathlib import Path
 
 ClientID = os.getenv('ClientID', 1)
 ClientHost = os.getenv('ClientHost', "localhost")
@@ -190,7 +191,10 @@ class MyHandler(BaseHTTPRequestHandler):
 			token = generate_token(16)
 
 			try:
-				os.mkdir(docker_dfs_src)
+				# Docker wouldn't create dir by default on bind mode,
+				# see https://github.com/moby/moby/issues/13121
+				path = Path(docker_dfs_src)
+				path.mkdir(parents=True, exist_ok=True)
 			except OSError as e:
 				print("Creation of the directory %s failed" % docker_dfs_src)
 				print(e)
