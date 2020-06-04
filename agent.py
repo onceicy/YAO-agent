@@ -216,6 +216,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--env hdfs_address=" + docker_hdfs_address,
 					"--env hdfs_dir=" + docker_hdfs_dir,
 					"--env gpu_mem=" + docker_gpu_mem,
+					"--env PYTHONUNBUFFERED=1",
 					"--mount type=bind,src=" + docker_dfs_src + ",dst=" + docker_dfs_dst,
 					docker_image,
 					docker_cmd
