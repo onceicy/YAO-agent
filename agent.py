@@ -45,6 +45,12 @@ client = docker.from_env()
 taskStats = {}
 taskStatsLock = Lock()
 
+active_stats = {0: {
+	'util': 0,
+	'mem_util': 0,
+	'mem': 0
+}}
+
 
 def generate_token(stringLength=8):
 	letters = string.ascii_lowercase
@@ -54,12 +60,22 @@ def generate_token(stringLength=8):
 def monitor_task(container_id):
 	print(container_id)
 	container = client.containers.get(container_id)
+
+	pid = 0
+
 	maxCPU = 0
 	maxMem = 0
 	last_bw_rx = 0
 	last_bw_tx = 0
 	last_time = time.time() - 1
 	for statR in container.stats():
+		if pid == 0:
+			res = container.top()['Processes']
+			for x in res:
+				if "/workspace" in x[7] and int(x[1]) in active_stats:
+					pid = int(x[1])
+					break
+
 		stat = json.loads(statR)
 		# print(stat)
 		if stat['read'] == '0001-01-01T00:00:00Z':
@@ -90,7 +106,16 @@ def monitor_task(container_id):
 		bw_rx /= dur
 		bw_tx /= dur
 
-		taskStats[container_id] = {'cpu': utilCPU, 'mem': mem, 'bw_rx': bw_rx, 'bw_tx': bw_tx}
+		taskStats[container_id] = {
+			'cpu': utilCPU,
+			'mem': mem,
+			'bw_rx': bw_rx,
+			'bw_tx': bw_tx,
+			'gpu_util': active_stats[pid]['util'],
+			'gpu_mem_util': active_stats[pid]['mem_util'],
+			'gpu_mem': active_stats[pid]['mem'],
+		}
+		# print(taskStats[container_id])
 		# print(utilCPU, mem, maxCPU, maxMem, bw_rx, bw_tx)
 		taskStatsLock.release()
 		if stat['preread'] == '0001-01-01T00:00:00Z':
@@ -206,6 +231,10 @@ class MyHandler(BaseHTTPRequestHandler):
 						status['mem'] = taskStats[container_id]['mem']
 						status['bw_rx'] = taskStats[container_id]['bw_rx']
 						status['bw_tx'] = taskStats[container_id]['bw_tx']
+						status['bw_tx'] = taskStats[container_id]['bw_tx']
+						status['gpu_util'] = taskStats[container_id]['gpu_util']
+						status['gpu_mem_util'] = taskStats[container_id]['gpu_mem_util']
+						status['gpu_mem'] = taskStats[container_id]['gpu_mem']
 						taskStatsLock.release()
 					if container_id in id2token:
 						token = id2token[container_id]
@@ -390,6 +419,29 @@ def reporter():
 		time.sleep(HeartbeatInterval)
 
 
+def pmon():
+	while True:
+		try:
+			status, msg_gpu = execute(['nvidia-smi', 'pmon', '-c', '1', '-s', 'um'])
+			if not status:
+				print("[WARN] execute failed, ", msg_gpu, status)
+			lists = msg_gpu.split('\n')
+			for p in lists:
+				if "#" not in p and "-" not in p:
+					tmp = p.split()
+					data = {
+						'idx': int(tmp[0]),
+						'pid': int(tmp[1]),
+						'util': int(tmp[3]),
+						'mem_util': int(tmp[4]),
+						'mem': int(tmp[7])
+					}
+					active_stats[int(tmp[1])] = data
+		except Exception as e:
+			print(e)
+		time.sleep(HeartbeatInterval)
+
+
 def execute(cmd):
 	try:
 		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -482,6 +534,7 @@ if __name__ == '__main__':
 
 	Thread(target=reporter).start()
 	Thread(target=listener).start()
+	Thread(target=pmon).start()
 	if EnableEventTrigger == 'true':
 		print('start event trigger')
 		Thread(target=event_trigger).start()

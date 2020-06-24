@@ -1,3 +1,4 @@
+import subprocess
 import docker
 
 
@@ -100,9 +101,51 @@ def create_container():
 def exec_run():
 	client = docker.from_env()
 	container = client.containers.get('yao-agent-helper')
-	exit_code, output = container.exec_run(cmd="sh -c 'docker run --gpus all --detach=True tensorflow/tensorflow:1.14.0-gpu nvidia-smi'")
+	exit_code, output = container.exec_run(
+		cmd="sh -c 'docker run --gpus all --detach=True tensorflow/tensorflow:1.14.0-gpu nvidia-smi'")
 	if exit_code == 0:
 		print(output.decode('utf-8').rstrip('\n'))
+
+
+def report():
+	try:
+		status, msg_gpu = execute(['nvidia-smi', 'pmon', '-c', '1', '-s', 'um'])
+		if not status:
+			print("execute failed, ", msg_gpu, status)
+		lists = msg_gpu.split('\n')
+		for p in lists:
+			if "#" not in p and "-" not in p:
+				tmp = p.split()
+				data = {
+					'idx': int(tmp[0]),
+					'pid': int(tmp[1]),
+					'util': int(tmp[3]),
+					'mem_util': int(tmp[4]),
+					'mem': int(tmp[7])
+				}
+				print(data)
+	except Exception as e:
+		print(e)
+
+
+def execute(cmd):
+	try:
+		result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		if result.returncode == 0:
+			return True, result.stdout.decode('utf-8').rstrip('\n')
+		return False, result.stderr.decode('utf-8').rstrip('\n')
+	except Exception as e:
+		return False, e
+
+
+def getPID(container_id):
+	client = docker.from_env()
+	container = client.containers.get(container_id)
+	res = container.top()['Processes']
+	for x in res:
+		if "/workspace" in x[7]:
+			print(res[1])
+			break
 
 
 # create_network()
@@ -112,4 +155,6 @@ def exec_run():
 # get_status('af121babda9b')
 # exec_run()
 # run()
-create_container()
+# create_container()
+# report()
+getPID('a6543cef3c85')
