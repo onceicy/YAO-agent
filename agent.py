@@ -59,10 +59,14 @@ def generate_token(stringLength=8):
 
 def monitor_task(container_id):
 	print(container_id)
-	container = client.containers.get(container_id)
+	container_id = ''
+	try:
+		container = client.containers.get(container_id)
+	except Exception as e:
+		print("[WARN]", str(e))
+		return
 
 	pid = 0
-
 	maxCPU = 0
 	maxMem = 0
 	last_bw_rx = 0
