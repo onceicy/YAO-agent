@@ -280,18 +280,19 @@ class MyHandler(BaseHTTPRequestHandler):
 			docker_hdfs_address = form.getvalue('hdfs_address')
 			docker_hdfs_dir = form.getvalue('hdfs_dir')
 			docker_gpu_mem = form.getvalue('gpu_mem')
-			docker_dfs_src = form.getvalue('dfs_src')
-			docker_dfs_dst = form.getvalue('dfs_dst')
+			dfs_src = form.getvalue('dfs_src')
+			dfs_dst = form.getvalue('dfs_dst')
 			token = generate_token(16)
 
-			try:
-				# Docker wouldn't create dir by default on bind mode,
-				# see https://github.com/moby/moby/issues/13121
-				path = Path(docker_dfs_src)
-				path.mkdir(parents=True, exist_ok=True)
-			except OSError as e:
-				print("Creation of the directory %s failed" % docker_dfs_src)
-				print(e)
+			if len(dfs_src) > 0:
+				try:
+					# Docker wouldn't create dir by default on bind mode,
+					# see https://github.com/moby/moby/issues/13121
+					path = Path(dfs_src)
+					path.mkdir(parents=True, exist_ok=True)
+				except OSError as e:
+					print("Creation of the directory %s failed" % dfs_src)
+					print(e)
 
 			try:
 				# set PYTHONUNBUFFERED=1 to output immediately
@@ -309,11 +310,11 @@ class MyHandler(BaseHTTPRequestHandler):
 					"--env should_wait=" + docker_wait,
 					"--env should_cb=" + 'http://' + ClientExtHost + ':' + str(PORT) + '/can_run?token=' + token,
 					"--env output_dir=" + docker_output,
-					"--env hdfs_address=" + docker_hdfs_address,
-					"--env hdfs_dir=" + docker_hdfs_dir,
+					"--env hdfs_address=" + docker_hdfs_address if len(docker_hdfs_address) > 0 else '',
+					"--env hdfs_dir=" + docker_hdfs_dir if len(docker_hdfs_address) > 0 else '',
 					"--env gpu_mem=" + docker_gpu_mem,
 					"--env PYTHONUNBUFFERED=1",
-					"--mount type=bind,src=" + docker_dfs_src + ",dst=" + docker_dfs_dst,
+					"--mount type=bind,src=" + dfs_src + ",dst=" + dfs_dst if len(dfs_src) > 0 else '',
 					docker_image,
 					docker_cmd
 				])
@@ -410,7 +411,7 @@ def report():
 		report_msg(stats)
 		Thread(target=launch_tasks, name='launch_tasks', args=(stats,)).start()
 	except Exception as e:
-		print(e)
+		print("[WARN]", str(e))
 
 
 def reporter():
@@ -438,7 +439,7 @@ def pmon():
 					}
 					active_stats[int(tmp[1])] = data
 		except Exception as e:
-			print(e)
+			print("[WARN]", str(e))
 		time.sleep(HeartbeatInterval)
 
 
@@ -518,7 +519,7 @@ def listener():
 		# Create a web server and define the handler to manage the
 		# incoming request
 		server = ThreadingSimpleServer(('', PORT), MyHandler)
-		print('Started http server on port ', PORT)
+		print('[INFO] Started http server on port ', PORT)
 
 		# Wait forever for incoming http requests
 		server.serve_forever()
@@ -536,7 +537,7 @@ if __name__ == '__main__':
 	Thread(target=listener).start()
 	Thread(target=pmon).start()
 	if EnableEventTrigger == 'true':
-		print('start event trigger')
+		print('[INFO] start event trigger')
 		Thread(target=event_trigger).start()
 
 	while True:
