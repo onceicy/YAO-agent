@@ -70,11 +70,14 @@ def monitor_task(container_id):
 	last_time = time.time() - 1
 	for statR in container.stats():
 		if pid == 0:
-			res = container.top()['Processes']
-			for x in res:
-				if "/workspace" in x[7] and int(x[1]) in active_stats:
-					pid = int(x[1])
-					break
+			try:
+				res = container.top()['Processes']
+				for x in res:
+					if "/workspace" in x[7] and int(x[1]) in active_stats:
+						pid = int(x[1])
+						break
+			except Exception as e:
+				print("[WARN]", str(e))
 
 		stat = json.loads(statR)
 		# print(stat)
