@@ -59,7 +59,6 @@ def generate_token(stringLength=8):
 
 def monitor_task(container_id):
 	print(container_id)
-	container_id = ''
 	try:
 		container = client.containers.get(container_id)
 	except Exception as e:
