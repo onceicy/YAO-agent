@@ -6,7 +6,6 @@ import subprocess
 import json
 from xml.dom.minidom import parse
 import xml.dom.minidom
-from kafka import KafkaProducer
 import multiprocessing
 import psutil
 import math
@@ -18,11 +17,12 @@ from urllib import parse
 import random
 import string
 from pathlib import Path
+import requests
 
 ClientID = os.getenv('ClientID', 1)
 ClientHost = os.getenv('ClientHost', "localhost")
 ClientExtHost = os.getenv('ClientExtHost', "localhost")
-KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
+ReportAddress = os.getenv('ReportAddress', "http://yao-scheduler:8080/?action=agent_report")
 
 RackID = os.getenv('RackID', "default")
 DomainID = os.getenv('DomainID', "default")
@@ -514,9 +514,14 @@ def report_msg(stats):
 
 	data = json.dumps(post_fields)
 
+	url = ReportAddress
+	params = {'data': data}
+	result = requests.post(url, data=params)
+	'''
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
 	future = producer.send('yao', value=data.encode(), partition=0)
 	result = future.get(timeout=5)
+	'''
 
 
 def listener():
