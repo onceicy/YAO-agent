@@ -514,9 +514,12 @@ def report_msg(stats):
 
 	data = json.dumps(post_fields)
 
-	url = ReportAddress
-	params = {'data': data}
-	result = requests.post(url, data=params)
+	try:
+		url = ReportAddress
+		params = {'data': data}
+		result = requests.post(url, data=params)
+	except Exception as e:
+		pass
 	'''
 	producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
 	future = producer.send('yao', value=data.encode(), partition=0)
