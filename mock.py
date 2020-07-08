@@ -2,15 +2,15 @@ import os
 from threading import Thread
 import time
 import json
-from kafka import KafkaProducer
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 from urllib import parse
+import requests
 
 NUMS = os.getenv('NUMS', 1)
 
 ClientHost = os.getenv('ClientHost', "localhost")
-KafkaBrokers = os.getenv('KafkaBrokers', 'localhost:9092').split(',')
+ReportAddress = os.getenv('ReportAddress', "http://yao-scheduler:8080/?action=agent_report")
 PORT = os.getenv('Port', 8000)
 HeartbeatInterval = os.getenv('HeartbeatInterval', 5)
 
@@ -123,10 +123,14 @@ def report(ClientID):
 			}
 			data = json.dumps(post_fields)
 
+			url = ReportAddress
+			params = {'data': data}
+			result = requests.post(url, data=params)
+			'''
 			producer = KafkaProducer(bootstrap_servers=KafkaBrokers)
 			future = producer.send('yao', value=data.encode(), partition=0)
 			result = future.get(timeout=5)
-
+			'''
 			time.sleep(HeartbeatInterval)
 		except Exception as e:
 			print(e)
