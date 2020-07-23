@@ -18,6 +18,7 @@ import random
 import string
 from pathlib import Path
 import requests
+import traceback
 
 ClientID = os.getenv('ClientID', 1)
 ClientHost = os.getenv('ClientHost', "localhost")
@@ -52,9 +53,9 @@ active_stats = {0: {
 }}
 
 
-def generate_token(stringLength=8):
+def generate_token(string_length=8):
 	letters = string.ascii_lowercase
-	return ''.join(random.choice(letters) for i in range(stringLength))
+	return ''.join(random.choice(letters) for i in range(string_length))
 
 
 def monitor_task(container_id):
@@ -130,6 +131,13 @@ def monitor_task(container_id):
 			maxCPU = utilCPU
 		if mem > maxMem:
 			maxMem = mem
+		# When container exited, break & clear taskStats after 30s
+		if pid != 0 and container.status != 'running':
+			time.sleep(30)
+			taskStatsLock.acquire()
+			taskStats.pop(container_id, None)
+			taskStatsLock.release()
+			break
 
 
 def launch_tasks(stats):
@@ -149,7 +157,7 @@ def launch_tasks(stats):
 	lock.acquire()
 	for token, task in pending_tasks.items():
 		if int(utils[task['gpus'][0]]) < 10 and counter[task['gpus'][0]] >= 2 \
-				and mem_frees[task['gpus'][0]] > task['gpu_mem']:
+				and (mem_frees[task['gpus'][0]] > task['gpu_mem'] or mem_frees[task['gpus'][0]] < 100):
 			entries_to_remove.append(token)
 
 	for k in entries_to_remove:
@@ -298,7 +306,7 @@ class MyHandler(BaseHTTPRequestHandler):
 					path.mkdir(parents=True, exist_ok=True)
 				except OSError as e:
 					print("Creation of the directory %s failed" % dfs_src)
-					print(e)
+					print(traceback.format_exc())
 
 			try:
 				# set PYTHONUNBUFFERED=1 to output immediately
