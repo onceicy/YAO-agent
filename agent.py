@@ -299,14 +299,21 @@ class MyHandler(BaseHTTPRequestHandler):
 			token = generate_token(16)
 
 			if len(dfs_src) > 0:
-				try:
-					# Docker wouldn't create dir by default on bind mode,
-					# see https://github.com/moby/moby/issues/13121
-					path = Path(dfs_src)
-					path.mkdir(parents=True, exist_ok=True)
-				except OSError as e:
-					print("Creation of the directory %s failed" % dfs_src)
-					print(traceback.format_exc())
+				failed_cnt = 0
+				while True:
+					failed_cnt += 1
+					if failed_cnt > 3:
+						break
+					try:
+						# Docker wouldn't create dir by default on bind mode,
+						# see https://github.com/moby/moby/issues/13121
+						path = Path(dfs_src)
+						path.mkdir(parents=True, exist_ok=True)
+						break
+					except OSError as e:
+						print("Creation of the directory %s failed" % dfs_src)
+						print(e)
+						print(traceback.format_exc())
 
 			try:
 				# set PYTHONUNBUFFERED=1 to output immediately
