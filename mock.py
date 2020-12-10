@@ -12,7 +12,7 @@ NUMS = os.getenv('NUMS', 1)
 ClientHost = os.getenv('ClientHost', "localhost")
 ReportAddress = os.getenv('ReportAddress', "http://yao-scheduler:8080/?action=agent_report")
 PORT = os.getenv('Port', 8000)
-HeartbeatInterval = os.getenv('HeartbeatInterval', 5)
+HeartbeatInterval = int(os.getenv('HeartbeatInterval', 5))
 
 
 class MyHandler(BaseHTTPRequestHandler):
