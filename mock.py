@@ -93,13 +93,13 @@ def report(ClientID):
 	while True:
 		try:
 			stats = []
-			for i in range(0, 4):
+			for i in range(0, 2):
 				stat = {
 					'uuid': 'UUID-' + ClientID + '-' + str(i),
-					'product_name': 'K80',
+					'product_name': 'T4',
 					'performance_state': 'P0',
-					'memory_total': 11260,
-					'memory_free': 11260,
+					'memory_total': 15079,
+					'memory_free': 15079,
 					'memory_used': 0,
 					'utilization_gpu': 0,
 					'utilization_mem': 0,
